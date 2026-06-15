@@ -1,7 +1,38 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_name="${REPO_NAME:-wzj-$(basename "$PWD")}"
+find_wzj_repo_root() {
+  local current probe wzj_root relative first_child
+  current="$(pwd -P)"
+  probe="$current"
+
+  while [ "$probe" != "/" ]; do
+    if [ "$(basename "$probe")" = "wzj" ]; then
+      wzj_root="$probe"
+      break
+    fi
+    probe="$(dirname "$probe")"
+  done
+
+  if [ -z "${wzj_root:-}" ]; then
+    echo "Run this script inside a first-level child directory under a wzj directory." >&2
+    exit 3
+  fi
+
+  if [ "$current" = "$wzj_root" ]; then
+    echo "Run this script inside a first-level child directory under $wzj_root, such as $wzj_root/test." >&2
+    exit 3
+  fi
+
+  relative="${current#"$wzj_root"/}"
+  first_child="${relative%%/*}"
+  printf '%s/%s\n' "$wzj_root" "$first_child"
+}
+
+repo_root="$(find_wzj_repo_root)"
+cd "$repo_root"
+
+repo_name="${REPO_NAME:-wzj-$(basename "$repo_root")}"
 branch_name="${BRANCH_NAME:-main}"
 commit_message="${INITIAL_COMMIT_MESSAGE:-feat: scaffold sample web project}"
 
@@ -49,6 +80,7 @@ repo_url="$(gh repo view "$repo_name" --json url -q .url)"
 commit_id="$(git rev-parse HEAD)"
 
 echo "REPO_NAME=$repo_name"
+echo "REPO_ROOT=$repo_root"
 echo "REPO_URL=$repo_url"
 echo "INITIAL_COMMIT_ID=$commit_id"
 echo "INITIAL_COMMIT_URL=$repo_url/commit/$commit_id"
