@@ -29,47 +29,55 @@ find_wzj_repo_root() {
   printf '%s/%s\n' "$wzj_root" "$first_child"
 }
 
-build_commit_message() {
-  local summary subject body files
-  summary="$(git status --porcelain | awk '
-    BEGIN { added = 0; modified = 0; deleted = 0; renamed = 0; other = 0 }
-    {
-      xy = substr($0, 1, 2)
-      if (xy == "??") {
-        added++
-        next
-      }
-      if (index(xy, "A") > 0) added++
-      if (index(xy, "M") > 0) modified++
-      if (index(xy, "D") > 0) deleted++
-      if (index(xy, "R") > 0) renamed++
-      if (xy !~ /[AMDR]/) other++
-    }
-    END {
-      total = added + modified + deleted + renamed + other
-      printf "%d|%d|%d|%d|%d|%d", total, added, modified, deleted, renamed, other
-    }
-  ')"
+usage() {
+  cat >&2 <<'EOF'
+缺少必填参数：--trae-session-id
 
-  IFS='|' read -r total added modified deleted renamed other <<< "$summary"
-  subject="chore: publish ${total} local file changes"
-  body="Local change summary:
-- added: ${added}
-- modified: ${modified}
-- deleted: ${deleted}
-- renamed: ${renamed}
-- other: ${other}"
+用法：
+  ./scripts/02-add-files-commit.sh --trae-session-id "你的 Trae Session ID"
 
-  files="$(git status --porcelain | sed -n '1,30p')"
-  if [ -n "$files" ]; then
-    body="${body}
-
-Changed files:
-${files}"
-  fi
-
-  printf '%s\n\n%s\n' "$subject" "$body"
+说明：
+  脚本会将 --trae-session-id 的参数值作为本次 git commit message。
+EOF
 }
+
+trae_session_id="${TRAE_SESSION_ID:-}"
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --trae-session-id)
+      if [ "$#" -lt 2 ] || [ -z "$2" ]; then
+        echo "参数 --trae-session-id 不能为空。" >&2
+        usage
+        exit 4
+      fi
+      trae_session_id="$2"
+      shift 2
+      ;;
+    --trae-session-id=*)
+      trae_session_id="${1#*=}"
+      if [ -z "$trae_session_id" ]; then
+        echo "参数 --trae-session-id 不能为空。" >&2
+        usage
+        exit 4
+      fi
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "未知参数：$1" >&2
+      usage
+      exit 4
+      ;;
+  esac
+done
+
+if [ -z "$trae_session_id" ]; then
+  usage
+  exit 4
+fi
 
 repo_root="$(find_wzj_repo_root)"
 cd "$repo_root"
@@ -112,21 +120,8 @@ if [ -z "$(git status --porcelain)" ]; then
   exit 0
 fi
 
-if [ -n "${COMMIT_MESSAGE:-}" ]; then
-  commit_subject="$COMMIT_MESSAGE"
-  commit_body=""
-else
-  generated_message="$(build_commit_message)"
-  commit_subject="$(printf '%s\n' "$generated_message" | sed -n '1p')"
-  commit_body="$(printf '%s\n' "$generated_message" | sed '1,2d')"
-fi
-
 git add -A
-if [ -n "${commit_body:-}" ]; then
-  git commit -m "$commit_subject" -m "$commit_body"
-else
-  git commit -m "$commit_subject"
-fi
+git commit -m "$trae_session_id"
 git push origin "$branch_name"
 
 repo_url="$(gh repo view "$repo_name" --json url -q .url)"

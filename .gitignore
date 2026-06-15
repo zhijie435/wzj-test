@@ -21,6 +21,10 @@ frontend/.vite/
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.jar
 
+# Python build output
+__pycache__/
+*.py[cod]
+
 # IDE files
 .idea/
 .vscode/
