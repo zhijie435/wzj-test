@@ -29,55 +29,63 @@ find_wzj_repo_root() {
   printf '%s/%s\n' "$wzj_root" "$first_child"
 }
 
+prompt_trae_session_id() {
+  local input
+
+  if [ -n "${TRAE_SESSION_ID:-}" ]; then
+    printf '%s\n' "$TRAE_SESSION_ID"
+    return
+  fi
+
+  if [ ! -t 0 ]; then
+    cat >&2 <<'EOF'
+缺少必填输入：Trae Session ID
+
+请在终端中直接执行脚本，并按提示输入 Trae Session ID：
+  ./scripts/02-add-files-commit.sh
+
+脚本会将你输入的 Trae Session ID 作为本次 git commit message。
+EOF
+    exit 4
+  fi
+
+  while true; do
+    printf '请输入 Trae Session ID（将作为本次 commit message）：' >&2
+    IFS= read -r input
+    if [ -n "$input" ]; then
+      printf '%s\n' "$input"
+      return
+    fi
+    echo "Trae Session ID 不能为空，请重新输入。" >&2
+  done
+}
+
 usage() {
   cat >&2 <<'EOF'
-缺少必填参数：--trae-session-id
-
 用法：
-  ./scripts/02-add-files-commit.sh --trae-session-id "你的 Trae Session ID"
+  ./scripts/02-add-files-commit.sh
 
 说明：
-  脚本会将 --trae-session-id 的参数值作为本次 git commit message。
+  执行后按提示输入 Trae Session ID。
+  脚本会将你输入的 Trae Session ID 作为本次 git commit message。
 EOF
 }
 
-trae_session_id="${TRAE_SESSION_ID:-}"
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --trae-session-id)
-      if [ "$#" -lt 2 ] || [ -z "$2" ]; then
-        echo "参数 --trae-session-id 不能为空。" >&2
-        usage
-        exit 4
-      fi
-      trae_session_id="$2"
-      shift 2
-      ;;
-    --trae-session-id=*)
-      trae_session_id="${1#*=}"
-      if [ -z "$trae_session_id" ]; then
-        echo "参数 --trae-session-id 不能为空。" >&2
-        usage
-        exit 4
-      fi
-      shift
-      ;;
     -h|--help)
       usage
       exit 0
       ;;
     *)
-      echo "未知参数：$1" >&2
+      echo "不再支持命令行传入 Trae Session ID，请直接执行脚本后按提示输入。" >&2
       usage
       exit 4
       ;;
   esac
 done
 
-if [ -z "$trae_session_id" ]; then
-  usage
-  exit 4
-fi
+trae_session_id="$(prompt_trae_session_id)"
 
 repo_root="$(find_wzj_repo_root)"
 cd "$repo_root"
