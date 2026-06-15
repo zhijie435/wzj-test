@@ -1,0 +1,8 @@
+Run frontend:
+cd frontend
+npm install
+npm run dev
+
+Run backend:
+cd backend
+mvn spring-boot:run
