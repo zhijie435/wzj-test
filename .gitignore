@@ -1,29 +1,84 @@
-# macOS
+# Local publish scripts
+scripts/01-bootstrap-and-publish.sh
+scripts/02-add-files-commit.sh
+
+# macOS and system files
 .DS_Store
+Thumbs.db
 
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Environment files
 .env
 .env.*
 !.env.example
 
-# Frontend dependencies and build output
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
+# Frontend dependencies and build output: Vue, React, Next, Nuxt, Vite, Svelte
+**/node_modules/
+**/dist/
+**/build/
+**/.vite/
+**/.next/
+**/out/
+**/.nuxt/
+**/.output/
+**/.svelte-kit/
+**/.parcel-cache/
+**/.turbo/
+**/coverage/
+
+# Flutter and Dart build output
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/build/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Pods/
+**/android/.gradle/
 
 # Java build output
-backend/target/
-backend/.mvn/wrapper/maven-wrapper.jar
+**/target/
+**/.gradle/
+**/gradle-app.setting
+**/.mvn/wrapper/maven-wrapper.jar
+**/*.class
+**/*.jar
+**/*.war
+**/*.ear
+
+# PHP dependencies and build output
+**/vendor/
+**/.phpunit.cache/
+**/.phpunit.result.cache
+**/composer.phar
 
 # Python build output
-__pycache__/
-*.py[cod]
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.tox/
+**/.nox/
+**/.venv/
+**/venv/
+**/env/
+**/*.egg-info/
+**/htmlcov/
+
+# Go build output
+**/bin/
+**/pkg/
+**/*.test
+**/*.out
+**/coverage.out
 
 # IDE files
 .idea/
