@@ -1,6 +1,7 @@
 # Local publish scripts
 scripts/01-bootstrap-and-publish.sh
 scripts/02-add-files-commit.sh
+scripts/03-copy-tools-to-sibling.sh
 
 # macOS and system files
 .DS_Store
